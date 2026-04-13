@@ -1,5 +1,5 @@
 const CACHE = 'helion-s1-v1';
-const ASSETS = ['./', './index.html', './manifest.json', './sw.js', './icon.svg'];
+const ASSETS = ['./', './index.html', './manifest.json', './sw.js', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();
