@@ -130,6 +130,42 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:none;border-ra
   padding:3px 9px;cursor:pointer;border-radius:2px;display:block;margin-bottom:3px;transition:all .15s;}
 .prbtn:hover{border-color:var(--amber);}
 
+/* ── HDR BUTTONS ── */
+.hdr-btn{background:#0a0604;border:1px solid var(--border);color:#888;font-family:'Share Tech Mono',monospace;
+  font-size:9px;letter-spacing:1.5px;padding:4px 10px;cursor:pointer;border-radius:2px;
+  white-space:nowrap;transition:all .15s;}
+.hdr-btn:hover{border-color:#666;color:var(--cream);}
+.demo-btn.playing{border-color:var(--amber);color:var(--amber);box-shadow:0 0 8px rgba(240,160,32,.3);animation:blink 1s infinite;}
+#help-btn{border-color:var(--amber2);color:var(--amber2);}
+#help-btn:hover,#help-btn.open{border-color:var(--amber);color:var(--amber);}
+#demo-stop-btn{border-color:var(--led);color:var(--led);}
+.hdr-btns{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-left:8px;}
+
+/* ── HELP MODAL ── */
+#help-modal{position:fixed;inset:0;z-index:100;background:rgba(4,2,0,.96);
+  display:flex;flex-direction:column;transition:opacity .25s;}
+#help-modal.hidden{opacity:0;pointer-events:none;}
+.hm-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;background:#120a04;border-bottom:1px solid var(--border);}
+.hm-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--amber);letter-spacing:4px;}
+.hm-close{background:none;border:1px solid var(--border);color:#888;font-size:16px;
+  width:30px;height:30px;cursor:pointer;border-radius:2px;font-family:monospace;transition:all .15s;}
+.hm-close:hover{border-color:var(--amber);color:var(--amber);}
+.hm-body{flex:1;overflow-y:auto;padding:16px 24px 24px;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-content:start;}
+.hm-card{background:#100a04;border:1px solid var(--border);border-radius:4px;padding:14px;}
+.hm-card h3{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--amber);
+  letter-spacing:3px;margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px;}
+.hm-card p,.hm-card li{font-size:10px;color:#aaa;line-height:1.9;margin-bottom:2px;}
+.hm-card ul{list-style:none;padding:0;}
+.hm-card li::before{content:'▸ ';color:var(--amber2);}
+.hm-kbd{display:inline-block;background:#1a0e04;border:1px solid #3a2010;border-radius:2px;
+  padding:1px 5px;font-size:9px;color:var(--amber);font-family:'Share Tech Mono',monospace;margin:1px;}
+.hm-table{width:100%;border-collapse:collapse;font-size:9px;margin-top:4px;}
+.hm-table td{padding:4px 6px;border-bottom:1px solid #160e04;color:#aaa;vertical-align:top;}
+.hm-table td:first-child{color:var(--amber);white-space:nowrap;font-weight:bold;}
+.hm-hl{color:var(--amber);}
+
 /* pickup switch */
 .sw-track{width:14px;height:70px;background:#0a0604;border:1px solid var(--border);
   border-radius:7px;position:relative;cursor:pointer;}
@@ -151,6 +187,13 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:none;border-ra
     <canvas id="wvc" width="110" height="28"></canvas>
     <div id="note-disp">—</div>
     <div class="led-dot"></div>
+    <div class="hdr-btns">
+      <button class="hdr-btn demo-btn" id="dbtn-classical" onclick="playDemo('classical')">&#127932; CLASSICA</button>
+      <button class="hdr-btn demo-btn" id="dbtn-rock"      onclick="playDemo('rock')">&#127928; ROCK</button>
+      <button class="hdr-btn demo-btn" id="dbtn-metal"     onclick="playDemo('metal')">&#129304; METAL</button>
+      <button class="hdr-btn" id="demo-stop-btn" onclick="stopDemo()" style="display:none">&#9632; STOP</button>
+      <button class="hdr-btn" id="help-btn" onclick="toggleHelp()">? GUIDA</button>
+    </div>
   </div>
 </div>
 
@@ -1092,6 +1135,157 @@ document.addEventListener('keydown',async e=>{
   if(e.key==='Enter'&&currentMode==='arp'){ e.preventDefault(); await initAudio(); toggleArp(); }
 });
 
+
+// ══════════════════════════════════════════
+// HELP MODAL
+// ══════════════════════════════════════════
+function toggleHelp(){
+  const m=document.getElementById('help-modal');
+  const b=document.getElementById('help-btn');
+  m.classList.toggle('hidden');
+  b.classList.toggle('open');
+}
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') {
+    const m=document.getElementById('help-modal');
+    if(!m.classList.contains('hidden')) toggleHelp();
+  }
+});
+
+// ══════════════════════════════════════════
+// DEMO PLAYER
+// ══════════════════════════════════════════
+const DEMO_TIMERS = [];
+let demoRunning = false;
+let currentDemoBtn = null;
+
+// ── ODE TO JOY (E minor, 120 BPM) ──────────────────
+// Note: si=string index (0=highE), f=fret, dur=ms until next note
+const DEMO_CLASSICAL = [
+  // Phrase 1: E E F G  G F E D  C C D E  E.(dot) D(8th) D(half)
+  {si:0,f:0,dur:500},{si:0,f:0,dur:500},{si:0,f:1,dur:500},{si:0,f:3,dur:500},
+  {si:0,f:3,dur:500},{si:0,f:1,dur:500},{si:0,f:0,dur:500},{si:1,f:3,dur:500},
+  {si:1,f:1,dur:500},{si:1,f:1,dur:500},{si:1,f:3,dur:500},{si:0,f:0,dur:500},
+  {si:0,f:0,dur:750},{si:1,f:3,dur:250},{si:1,f:3,dur:1000},
+  // Phrase 2: D D E C  C E D C  B C D E  E.(dot) D(8th) D(half)
+  {si:1,f:3,dur:500},{si:1,f:3,dur:500},{si:0,f:0,dur:500},{si:1,f:1,dur:500},
+  {si:1,f:1,dur:500},{si:0,f:0,dur:500},{si:1,f:3,dur:500},{si:1,f:1,dur:500},
+  {si:1,f:0,dur:500},{si:1,f:1,dur:500},{si:1,f:3,dur:500},{si:0,f:0,dur:500},
+  {si:0,f:0,dur:750},{si:1,f:3,dur:250},{si:1,f:3,dur:1000},
+  // Phrase 3 (climax): E E F G  G F E D  C D E  E.(dot) D(8th) D(half)
+  {si:0,f:0,dur:500},{si:0,f:0,dur:500},{si:0,f:1,dur:500},{si:0,f:3,dur:500},
+  {si:0,f:3,dur:500},{si:0,f:1,dur:500},{si:0,f:0,dur:500},{si:1,f:3,dur:500},
+  {si:1,f:1,dur:500},{si:1,f:3,dur:500},{si:0,f:0,dur:750},
+  {si:1,f:3,dur:250},{si:1,f:1,dur:1200},
+];
+
+// ── IRON GROOVE (Blues-Rock riff, original) ─────────
+// Pentatonic minor E riff on low string + power chord hits
+const DEMO_ROCK = [
+  // Main riff phrase 1 (low E pentatonic: 0-3-5-7)
+  {si:5,f:0,dur:180},{si:5,f:3,dur:180},{si:5,f:5,dur:180},
+  {si:5,f:5,dur:120},{si:5,f:3,dur:120},{si:5,f:0,dur:380},
+  {si:5,f:0,dur:180},{si:5,f:3,dur:180},{si:5,f:5,dur:180},
+  {si:5,f:7,dur:180},{si:5,f:5,dur:180},{si:5,f:3,dur:500},
+  // Phrase 2 (A string response)
+  {si:4,f:0,dur:180},{si:4,f:2,dur:180},{si:4,f:3,dur:180},
+  {si:4,f:3,dur:120},{si:4,f:2,dur:120},{si:4,f:0,dur:380},
+  {si:5,f:0,dur:180},{si:5,f:3,dur:180},{si:5,f:5,dur:300},
+  {si:5,f:0,dur:80},{si:5,f:0,dur:80},{si:5,f:3,dur:400},
+  // Power chord hits (Em)
+  {si:5,f:0,dur:15},{si:4,f:2,dur:15},{si:3,f:2,dur:15},{si:2,f:0,dur:500},
+  {si:5,f:0,dur:15},{si:4,f:2,dur:15},{si:3,f:2,dur:15},{si:2,f:0,dur:500},
+  // Bridge riff
+  {si:5,f:3,dur:150},{si:5,f:5,dur:150},{si:5,f:7,dur:150},{si:5,f:5,dur:150},
+  {si:5,f:3,dur:150},{si:5,f:0,dur:150},{si:5,f:0,dur:300},
+  // Final Am power chord
+  {si:4,f:0,dur:15},{si:3,f:2,dur:15},{si:2,f:2,dur:15},
+  {si:5,f:0,dur:15},{si:4,f:2,dur:15},{si:3,f:2,dur:1000},
+];
+
+// ── STORM PROTOCOL (Heavy Metal, original) ──────────
+// Gallop rhythm + chromatic descent + high register finish
+const DEMO_METAL = [
+  // Gallop pattern: short-short-long on open E (4 groups)
+  {si:5,f:0,dur:90},{si:5,f:0,dur:90},{si:5,f:0,dur:180},
+  {si:5,f:0,dur:90},{si:5,f:0,dur:90},{si:5,f:0,dur:180},
+  {si:5,f:3,dur:90},{si:5,f:0,dur:90},{si:5,f:5,dur:180},
+  {si:5,f:0,dur:90},{si:5,f:0,dur:90},{si:5,f:3,dur:180},
+  // Gallop round 2 (higher)
+  {si:5,f:0,dur:90},{si:5,f:0,dur:90},{si:5,f:0,dur:180},
+  {si:5,f:0,dur:90},{si:5,f:0,dur:90},{si:5,f:0,dur:180},
+  {si:5,f:5,dur:90},{si:5,f:0,dur:90},{si:5,f:7,dur:180},
+  {si:5,f:0,dur:90},{si:5,f:5,dur:90},{si:5,f:3,dur:300},
+  // Chromatic descent (low E: fret 7→0)
+  {si:5,f:7,dur:100},{si:5,f:6,dur:100},{si:5,f:5,dur:100},
+  {si:5,f:4,dur:100},{si:5,f:3,dur:100},{si:5,f:2,dur:100},
+  {si:5,f:1,dur:100},{si:5,f:0,dur:400},
+  // High register scream (string 0, descend 12→7)
+  {si:0,f:12,dur:100},{si:0,f:11,dur:100},{si:0,f:10,dur:100},
+  {si:0,f:9,dur:100},{si:0,f:8,dur:100},{si:0,f:7,dur:300},
+  // Power chord triplet finale
+  {si:5,f:0,dur:100},{si:4,f:2,dur:100},{si:3,f:2,dur:100},
+  {si:5,f:0,dur:100},{si:4,f:2,dur:100},{si:3,f:2,dur:100},
+  {si:5,f:0,dur:100},{si:4,f:2,dur:100},{si:3,f:2,dur:300},
+  // Riff reprise with gallop
+  {si:5,f:0,dur:90},{si:5,f:0,dur:90},{si:5,f:0,dur:180},
+  {si:5,f:0,dur:90},{si:5,f:0,dur:90},{si:5,f:5,dur:180},
+  {si:5,f:0,dur:90},{si:5,f:3,dur:90},{si:5,f:0,dur:300},
+  // Final chord slam
+  {si:5,f:0,dur:15},{si:4,f:2,dur:15},{si:3,f:2,dur:15},{si:2,f:0,dur:15},{si:1,f:0,dur:1500},
+];
+
+const DEMO_PRESETS = {
+  classical: 'clean',
+  rock:      'crunch',
+  metal:     'lead',
+};
+const DEMO_PICKUP = { classical: 5, rock: 1, metal: 1 };
+const DEMO_EXTRA_DIST = { classical: 0, rock: 0, metal: 0.92 };
+const DEMO_SEQUENCES = { classical: DEMO_CLASSICAL, rock: DEMO_ROCK, metal: DEMO_METAL };
+
+async function playDemo(type){
+  await initAudio();
+  stopDemo();
+  demoRunning = true;
+  currentDemoBtn = type;
+
+  // Load preset
+  loadPreset(DEMO_PRESETS[type]);
+  setPickup(DEMO_PICKUP[type]);
+  if(DEMO_EXTRA_DIST[type]){
+    distVal = DEMO_EXTRA_DIST[type];
+    document.getElementById('sl-dist').value = Math.round(distVal*100);
+    document.getElementById('sl-dist-v').textContent = Math.round(distVal*100)+'%';
+    updateAudioParams();
+  }
+
+  // UI feedback
+  document.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('playing'));
+  const btn = document.getElementById('dbtn-'+type);
+  if(btn) btn.classList.add('playing');
+  document.getElementById('demo-stop-btn').style.display='inline-block';
+
+  // Schedule sequence
+  const seq = DEMO_SEQUENCES[type];
+  let t = 300; // brief delay for preset to settle
+  seq.forEach(note=>{
+    const id = setTimeout(()=>{ if(!demoRunning) return; pluckString(note.si, note.f); }, t);
+    DEMO_TIMERS.push(id);
+    t += note.dur;
+  });
+  const endId = setTimeout(()=>stopDemo(), t + 800);
+  DEMO_TIMERS.push(endId);
+}
+
+function stopDemo(){
+  demoRunning = false;
+  DEMO_TIMERS.forEach(id=>clearTimeout(id));
+  DEMO_TIMERS.length = 0;
+  document.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('playing'));
+  document.getElementById('demo-stop-btn').style.display='none';
+}
+
 // ══════════════════════════════════════════
 // PWA SERVICE WORKER
 // ══════════════════════════════════════════
@@ -1124,5 +1318,168 @@ setKnobAngle('ki-vol',-135+volVal*270);
 setKnobAngle('ki-t1',-135+t1Val*270);
 setKnobAngle('ki-t2',-135+t2Val*270);
 </script>
+
+<!-- HELP MODAL -->
+<div id="help-modal" class="hidden">
+  <div class="hm-head">
+    <span class="hm-title">HELION S1 — GUIDA COMPLETA</span>
+    <button class="hm-close" onclick="toggleHelp()">&#10005;</button>
+  </div>
+  <div class="hm-body">
+
+    <!-- SINGLE NOTE -->
+    <div class="hm-card">
+      <h3>&#127925; SINGLE NOTE MODE</h3>
+      <p>La modalit&agrave; di default. Clicca direttamente sulla chitarra.</p>
+      <ul>
+        <li>Clicca su qualsiasi <span class="hm-hl">tasto del manico</span> (fret 1&ndash;16) sulla corda desiderata per suonare quella nota</li>
+        <li>Clicca nell&apos;area prima del capotasto (a sinistra del NUT) per suonare la <span class="hm-hl">corda a vuoto</span></li>
+        <li>La nota suonata appare in alto a destra nell&apos;header</li>
+        <li>La corda vibra visivamente con animazione fisica</li>
+        <li>Frequenza calcolata: <span class="hm-hl">f = f_open &times; 2^(fret/12)</span></li>
+      </ul>
+      <p style="margin-top:8px;color:#666;">ACCORDATURA STANDARD</p>
+      <table class="hm-table">
+        <tr><td>Corda 1</td><td>E4 &mdash; 329.63 Hz &mdash; Mi acuto</td></tr>
+        <tr><td>Corda 2</td><td>B3 &mdash; 246.94 Hz &mdash; Si</td></tr>
+        <tr><td>Corda 3</td><td>G3 &mdash; 196.00 Hz &mdash; Sol</td></tr>
+        <tr><td>Corda 4</td><td>D3 &mdash; 146.83 Hz &mdash; Re</td></tr>
+        <tr><td>Corda 5</td><td>A2 &mdash; 110.00 Hz &mdash; La</td></tr>
+        <tr><td>Corda 6</td><td>E2 &mdash; 82.41 Hz &mdash; Mi basso</td></tr>
+      </table>
+    </div>
+
+    <!-- CHORD MODE -->
+    <div class="hm-card">
+      <h3>&#127926; CHORD MODE</h3>
+      <p>Seleziona il tab <span class="hm-hl">CHORD</span> nel pannello centrale.</p>
+      <ul>
+        <li>Clicca un accordo dalla griglia per selezionarlo</li>
+        <li>Il <span class="hm-hl">diagramma di diteggiatura</span> mostra le posizioni delle dita in tempo reale</li>
+        <li><span class="hm-hl">&#11015; DOWN</span> = strum dall&apos;basso verso l&apos;alto (corda 6&rarr;1)</li>
+        <li><span class="hm-hl">&#11014; UP</span> = strum inverso (corda 1&rarr;6)</li>
+        <li><span class="hm-hl">&#8597; AUTO</span> = down + up rimbalzato automatico</li>
+        <li>SPEED = velocit&agrave; dello strum (ms tra una corda e l&apos;altra)</li>
+        <li>Premi <span class="hm-kbd">SPAZIO</span> per strum rapido da tastiera</li>
+      </ul>
+      <p style="margin-top:8px;color:#666;">ACCORDI DISPONIBILI</p>
+      <table class="hm-table">
+        <tr><td>Em</td><td>0-2-2-0-0-0 &mdash; Mi minore</td></tr>
+        <tr><td>Am</td><td>x-0-2-2-1-0 &mdash; La minore</td></tr>
+        <tr><td>Dm</td><td>x-x-0-2-3-1 &mdash; Re minore</td></tr>
+        <tr><td>G</td><td>3-2-0-0-0-3 &mdash; Sol maggiore</td></tr>
+        <tr><td>C</td><td>x-3-2-0-1-0 &mdash; Do maggiore</td></tr>
+        <tr><td>F</td><td>1-3-3-2-1-1 &mdash; Fa (barr&eacute;)</td></tr>
+        <tr><td>A / E</td><td>La e Mi maggiori</td></tr>
+        <tr><td>Bm</td><td>x-2-4-4-3-2 &mdash; Si minore barr&eacute;</td></tr>
+        <tr><td>A7 / E7 / G7</td><td>Accordi di settima</td></tr>
+        <tr><td>Cadd9</td><td>x-3-2-0-3-3 &mdash; Do add9</td></tr>
+      </table>
+    </div>
+
+    <!-- ARPEGGIO MODE -->
+    <div class="hm-card">
+      <h3>&#127928; ARPEGGIO MODE</h3>
+      <p>Seleziona il tab <span class="hm-hl">ARPEGGIO</span> per il player automatico.</p>
+      <ul>
+        <li>Scegli l&apos;<span class="hm-hl">accordo</span> dalla griglia destra</li>
+        <li>Imposta il <span class="hm-hl">pattern</span> di arpeggio</li>
+        <li>Regola i <span class="hm-hl">BPM</span> (40&ndash;220, unit&agrave; = croma)</li>
+        <li>Premi <span class="hm-hl">&#9654; PLAY</span> o <span class="hm-kbd">INVIO</span></li>
+        <li>La corda attiva viene evidenziata in ambra ad ogni beat</li>
+      </ul>
+      <p style="margin-top:8px;color:#666;">PATTERN DISPONIBILI</p>
+      <table class="hm-table">
+        <tr><td>&#8593; ASC</td><td>Dalla corda bassa alla corda alta, ciclico</td></tr>
+        <tr><td>&#8595; DESC</td><td>Dall&apos;acuto al grave, inverso</td></tr>
+        <tr><td>&#9671; BROKEN</td><td>Alternanza basso/treble (arpeggio spezzato)</td></tr>
+        <tr><td>&#9833; TRAVIS</td><td>Travis picking &mdash; basso alternato + melodia interna</td></tr>
+      </table>
+      <p style="margin-top:8px;"><span class="hm-hl">Suggerimento:</span> combina TRAVIS a 60 BPM su Am per un effetto fingerpicking classico.</p>
+    </div>
+
+    <!-- PICKUP & SUONO -->
+    <div class="hm-card">
+      <h3>&#9917; PICKUP SELECTOR</h3>
+      <p>Il selettore a 5 posizioni cambia il carattere sonoro simulando i 3 single-coil.</p>
+      <table class="hm-table">
+        <tr><td>1 &mdash; BRIDGE</td><td>Brillante, tagliente, twangy. Ideale per funk e blues.</td></tr>
+        <tr><td>2 &mdash; BRIDGE+MID</td><td>Il famoso &ldquo;quack&rdquo; in fase. Perfetto per clean funk.</td></tr>
+        <tr><td>3 &mdash; MIDDLE</td><td>Bilanciato, neutro. Uso universale.</td></tr>
+        <tr><td>4 &mdash; MID+NECK</td><td>Caldo con presenza mid. Jazz e soul.</td></tr>
+        <tr><td>5 &mdash; NECK</td><td>Rotondo, bassi pieni. Blues lead e jazz.</td></tr>
+      </table>
+      <p style="margin-top:8px;">Tasto <span class="hm-kbd">P</span> = cicla posizione pickup da tastiera.</p>
+    </div>
+
+    <!-- EFFETTI -->
+    <div class="hm-card">
+      <h3>&#9917; EFFETTI E CONTROLLI</h3>
+      <table class="hm-table">
+        <tr><td>VOLUME</td><td>Guadagno master in uscita (0&ndash;100)</td></tr>
+        <tr><td>TONE 1</td><td>Filtro passa-basso principale &mdash; taglia le alte frequenze. Girato a sx = suono soffocato, a dx = piena brillantezza.</td></tr>
+        <tr><td>TONE 2</td><td>Secondo filtro passa-basso in serie. Permette scultura timbrica fine.</td></tr>
+        <tr><td>DISTORTION</td><td>WaveShaper con saturazione progressiva. A 0% = pulito, a 100% = fuzz pesante.</td></tr>
+        <tr><td>REVERB</td><td>Riverbero sintetico (impulse response generato a runtime). Da leggero ambiente a grande hall.</td></tr>
+        <tr><td>DELAY</td><td>Eco con feedback. A 100% = delay 500ms, feedback 35%. Ideale per solos e ambient.</td></tr>
+      </table>
+      <p style="margin-top:8px;color:#666;">I knob si ruotano trascinando verticalmente con il mouse o il dito.</p>
+    </div>
+
+    <!-- PRESETS -->
+    <div class="hm-card">
+      <h3>&#127911; PRESETS</h3>
+      <table class="hm-table">
+        <tr><td>CLEAN</td><td>Middle pickup &mdash; suono cristallino senza distorsione. Per arpeggi, chord jazz, funk.</td></tr>
+        <tr><td>CRUNCH</td><td>Bridge pickup &mdash; distorsione moderata con delay. Blues-rock, rhythm guitar.</td></tr>
+        <tr><td>LEAD</td><td>Neck pickup &mdash; distorsione alta, reverb e delay ampi. Per assoli sostenuti.</td></tr>
+      </table>
+      <p style="margin-top:8px;"><span class="hm-hl">Consiglio:</span> carica un preset come punto di partenza, poi raffina manualmente i knob per il tuo suono personale.</p>
+    </div>
+
+    <!-- SCORCIATOIE -->
+    <div class="hm-card">
+      <h3>&#9000; SCORCIATOIE TASTIERA</h3>
+      <table class="hm-table">
+        <tr><td><span class="hm-kbd">1</span>&ndash;<span class="hm-kbd">6</span></td><td>Suona le corde 1&ndash;6 a vuoto</td></tr>
+        <tr><td><span class="hm-kbd">Q</span><span class="hm-kbd">W</span><span class="hm-kbd">E</span><span class="hm-kbd">R</span><span class="hm-kbd">T</span><span class="hm-kbd">Y</span></td><td>Corde 1&ndash;6 al tasto 1</td></tr>
+        <tr><td><span class="hm-kbd">A</span><span class="hm-kbd">S</span><span class="hm-kbd">D</span><span class="hm-kbd">F</span><span class="hm-kbd">G</span><span class="hm-kbd">H</span></td><td>Corde 1&ndash;6 al tasto 2</td></tr>
+        <tr><td><span class="hm-kbd">P</span></td><td>Cicla posizione pickup (1&rarr;5)</td></tr>
+        <tr><td><span class="hm-kbd">SPAZIO</span></td><td>Strum accordo (Chord Mode)</td></tr>
+        <tr><td><span class="hm-kbd">INVIO</span></td><td>Play/Stop arpeggio (Arpeggio Mode)</td></tr>
+        <tr><td><span class="hm-kbd">ESC</span></td><td>Chiudi questa guida</td></tr>
+      </table>
+    </div>
+
+    <!-- DEMO BRANI -->
+    <div class="hm-card">
+      <h3>&#127916; DEMO AUTOMATICA</h3>
+      <p>I tre pulsanti DEMO nell&apos;header suonano sequenze originali composte appositamente:</p>
+      <table class="hm-table">
+        <tr><td>&#127932; CLASSICA</td><td><span class="hm-hl">Inno alla Gioia</span> &mdash; melodia su corde alte, preset CLEAN, pickup Neck. Tema originale di Beethoven eseguito in Mi minore sulla chitarra.</td></tr>
+        <tr><td>&#127928; ROCK</td><td><span class="hm-hl">Iron Groove</span> &mdash; riff pentatonico su corda bassa + power chord hits. Preset CRUNCH, pickup Bridge. Ritmo incalzante blues-rock.</td></tr>
+        <tr><td>&#129304; METAL</td><td><span class="hm-hl">Storm Protocol</span> &mdash; ritmo a galoppo (short-short-long) + discesa cromatica + finale con terzine acute. Preset LEAD + distorsione massima.</td></tr>
+      </table>
+      <p style="margin-top:8px;">Premi <span class="hm-hl">&#9632; STOP</span> per interrompere la demo in qualsiasi momento.</p>
+    </div>
+
+    <!-- MOTORE AUDIO -->
+    <div class="hm-card">
+      <h3>&#127925; MOTORE AUDIO</h3>
+      <ul>
+        <li><span class="hm-hl">Karplus-Strong</span>: modello fisico della corda pizzicata. Buffer di rumore &rarr; filtro ricorsivo con damping.</li>
+        <li><span class="hm-hl">Damping</span>: variabile per pickup (Bridge = 0.4950, Neck = 0.4998). Controlla brillantezza e sustain.</li>
+        <li><span class="hm-hl">EQ pickup</span>: filtro peaking per-nota sulla catena del segnale.</li>
+        <li><span class="hm-hl">WaveShaper</span>: distorsione con curva soft-clip progressiva.</li>
+        <li><span class="hm-hl">Reverb</span>: ConvolverNode con impulse response sintetico generato a runtime (rumore esponenzialmente decadente).</li>
+        <li><span class="hm-hl">Delay</span>: DelayNode con feedback regolabile fino a 500ms.</li>
+        <li><span class="hm-hl">Waveform</span>: AnalyserNode visualizzato in tempo reale nell&apos;header.</li>
+      </ul>
+      <p style="margin-top:8px;color:#555;">Sviluppato da PezzaliApp Instruments &mdash; pezzaliapp.com &mdash; &copy; 2026</p>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
