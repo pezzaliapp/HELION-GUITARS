@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Helion S1">
+<meta name="theme-color" content="#f0a020">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon.svg">
+<title>Helion Guitars — Double Cut S1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080606; --amber:#f0a020; --amber2:#a06010; --cream:#e8d5a3;
+  --panel:#100a04; --border:#2a1808; --led:#ff3300; --active:#f0a020;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
+body{display:flex;flex-direction:column;font-family:'Share Tech Mono',monospace;color:var(--cream);user-select:none;-webkit-user-select:none;}
+
+/* ── HEADER ── */
+#header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:5px 16px;background:linear-gradient(180deg,#1a0c04 0%,#0a0604 100%);
+  border-bottom:1px solid var(--border);}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:var(--amber);
+  text-shadow:0 0 16px rgba(240,160,32,.4);}
+.brand span{font-size:9px;letter-spacing:2px;color:#555;display:block;margin-top:-4px;}
+.hdr-right{display:flex;align-items:center;gap:14px;}
+.led-dot{width:7px;height:7px;border-radius:50%;background:var(--led);box-shadow:0 0 8px var(--led);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#note-disp{font-size:13px;color:var(--amber);min-width:60px;text-align:right;letter-spacing:1px;}
+#wvc{border:1px solid var(--border);border-radius:2px;}
+
+/* ── GUITAR ── */
+#guitar-wrap{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;}
+#gsvg{width:100%;height:100%;max-height:100%;}
+.fz{fill:transparent;cursor:pointer;}
+.fz:hover{fill:rgba(240,160,32,.08);}
+.fz:active{fill:rgba(240,160,32,.25);}
+.oz{fill:transparent;cursor:pointer;}
+.oz:hover{fill:rgba(200,210,255,.07);}
+
+/* ── OVERLAY ── */
+#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(8,6,4,.85);transition:opacity .35s;pointer-events:all;z-index:20;}
+#overlay.hidden{opacity:0;pointer-events:none;}
+.ob{border:1px solid var(--amber);border-radius:6px;padding:18px 28px;text-align:center;background:rgba(10,6,2,.96);}
+.ob h2{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--amber);letter-spacing:4px;margin-bottom:6px;}
+.ob p{font-size:10px;color:#777;line-height:2;}
+
+/* ── MODE PANEL ── */
+#mode-panel{flex-shrink:0;background:#0d0804;border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);padding:6px 16px;display:flex;gap:16px;align-items:flex-start;}
+
+.mode-tabs{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
+.mtab{background:#0a0604;border:1px solid var(--border);color:#555;
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  padding:4px 10px;cursor:pointer;border-radius:2px;white-space:nowrap;transition:all .15s;}
+.mtab.active{background:#1a0e04;border-color:var(--amber);color:var(--amber);box-shadow:0 0 8px rgba(240,160,32,.2);}
+
+.msec{display:none;flex:1;gap:10px;align-items:flex-start;}
+.msec.active{display:flex;}
+
+/* chord buttons grid */
+#chord-grid{display:flex;flex-wrap:wrap;gap:4px;max-width:340px;}
+.cbtn{background:#0a0604;border:1px solid var(--border);color:#999;
+  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;
+  padding:4px 8px;cursor:pointer;border-radius:2px;min-width:34px;text-align:center;transition:all .15s;}
+.cbtn:hover{border-color:#666;color:var(--cream);}
+.cbtn.active{background:#1e0f04;border-color:var(--amber);color:var(--amber);
+  box-shadow:0 0 6px rgba(240,160,32,.3);}
+
+/* strum controls */
+#strum-ctl{display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+.sbtn{background:#0a0604;border:1px solid var(--border);color:#888;
+  font-size:11px;padding:4px 10px;cursor:pointer;border-radius:2px;font-family:'Share Tech Mono',monospace;
+  letter-spacing:1px;transition:all .15s;white-space:nowrap;}
+.sbtn:hover{border-color:#666;color:var(--cream);}
+.sbtn.active{border-color:var(--amber);color:var(--amber);}
+.slrow{display:flex;align-items:center;gap:6px;font-size:8px;color:#555;letter-spacing:1px;}
+
+/* chord diagram */
+#chord-diag-wrap{flex-shrink:0;}
+#cdiag{display:block;}
+
+/* arp controls */
+#arp-section{display:flex;gap:10px;align-items:flex-start;flex:1;}
+.arp-col{display:flex;flex-direction:column;gap:5px;}
+.arp-label{font-size:8px;color:#555;letter-spacing:2px;text-transform:uppercase;}
+#pat-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.pbtn{background:#0a0604;border:1px solid var(--border);color:#888;
+  font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;
+  font-family:'Share Tech Mono',monospace;letter-spacing:1px;white-space:nowrap;transition:all .15s;}
+.pbtn:hover{border-color:#666;color:var(--cream);}
+.pbtn.active{border-color:var(--amber);color:var(--amber);}
+#arp-chord-grid{display:flex;flex-wrap:wrap;gap:3px;max-width:280px;}
+.acbtn{background:#0a0604;border:1px solid var(--border);color:#888;
+  font-size:9px;padding:3px 7px;cursor:pointer;border-radius:2px;
+  font-family:'Share Tech Mono',monospace;transition:all .15s;}
+.acbtn.active{border-color:var(--amber);color:var(--amber);}
+.arp-play-btn{background:#1a0e04;border:1px solid var(--amber);color:var(--amber);
+  font-size:13px;padding:6px 14px;cursor:pointer;border-radius:2px;
+  font-family:'Share Tech Mono',monospace;transition:all .15s;}
+.arp-play-btn:hover{background:#2a1808;}
+.arp-play-btn.playing{background:#2a1808;box-shadow:0 0 10px rgba(240,160,32,.3);}
+#arp-bpm-disp{font-size:12px;color:var(--amber);min-width:28px;text-align:right;}
+
+/* ── CONTROLS BAR ── */
+#controls{flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);
+  padding:6px 16px 8px;display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap;}
+.cg{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.cl{font-size:8px;letter-spacing:2px;color:#555;text-transform:uppercase;}
+.ks{width:44px;height:44px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#3a2510 0%,#160c04 100%);
+  border:2px solid #2a1808;
+  box-shadow:0 4px 12px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07);
+  position:relative;cursor:ns-resize;touch-action:none;}
+.kv{font-size:8px;color:#444;}
+input[type=range]{-webkit-appearance:none;width:80px;height:3px;background:var(--border);border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--amber);cursor:pointer;box-shadow:0 0 5px rgba(240,160,32,.4);}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border:none;border-radius:50%;background:var(--amber);cursor:pointer;}
+.sep{width:1px;height:55px;background:var(--border);}
+.prbtn{background:#1a0e04;border:1px solid var(--border);color:var(--amber);
+  font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;
+  padding:3px 9px;cursor:pointer;border-radius:2px;display:block;margin-bottom:3px;transition:all .15s;}
+.prbtn:hover{border-color:var(--amber);}
+
+/* pickup switch */
+.sw-track{width:14px;height:70px;background:#0a0604;border:1px solid var(--border);
+  border-radius:7px;position:relative;cursor:pointer;}
+.sw-thumb{width:10px;height:10px;border-radius:50%;background:var(--amber);
+  box-shadow:0 0 5px var(--amber);position:absolute;left:50%;transform:translateX(-50%);transition:top .15s;}
+.pk-name{font-size:8px;color:var(--amber);min-height:11px;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div>
+    <div class="brand">HELION GUITARS — DOUBLE CUT S1
+      <span>AUDIO EMULATOR · KARPLUS-STRONG ENGINE · PWA</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <canvas id="wvc" width="110" height="28"></canvas>
+    <div id="note-disp">—</div>
+    <div class="led-dot"></div>
+  </div>
+</div>
+
+<!-- GUITAR -->
+<div id="guitar-wrap">
+  <svg id="gsvg" viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="sunburst" cx="62%" cy="50%" r="58%">
+        <stop offset="0%"   stop-color="#c87a12"/>
+        <stop offset="28%"  stop-color="#8a340e"/>
+        <stop offset="62%"  stop-color="#561408"/>
+        <stop offset="100%" stop-color="#0c0402"/>
+      </radialGradient>
+      <radialGradient id="bodyshine" cx="38%" cy="30%" r="55%">
+        <stop offset="0%"   stop-color="rgba(255,255,255,.17)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </radialGradient>
+      <linearGradient id="maple" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#d4b072"/>
+        <stop offset="100%" stop-color="#a87a3a"/>
+      </linearGradient>
+      <linearGradient id="rosewood" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"   stop-color="#3a1808"/>
+        <stop offset="50%"  stop-color="#4a2010"/>
+        <stop offset="100%" stop-color="#3a1808"/>
+      </linearGradient>
+      <linearGradient id="headstock" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"   stop-color="#241208"/>
+        <stop offset="100%" stop-color="#140804"/>
+      </linearGradient>
+      <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#e0e0e0"/>
+        <stop offset="50%"  stop-color="#b0b0b0"/>
+        <stop offset="100%" stop-color="#787878"/>
+      </linearGradient>
+      <linearGradient id="pgrd" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"   stop-color="#f2ece0"/>
+        <stop offset="100%" stop-color="#ddd4c0"/>
+      </linearGradient>
+      <linearGradient id="pup" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#ede4c8"/>
+        <stop offset="100%" stop-color="#ccc0a0"/>
+      </linearGradient>
+      <radialGradient id="kbrown" cx="35%" cy="30%" r="65%">
+        <stop offset="0%"   stop-color="#4a3018"/>
+        <stop offset="100%" stop-color="#180e04"/>
+      </radialGradient>
+      <filter id="glow-a">
+        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-s">
+        <feGaussianBlur stdDeviation="1.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Body shadow -->
+    <path transform="translate(5,5)" opacity=".45"
+      d="M452,198 C440,180 432,155 436,133 C440,114 456,102 478,97
+         C514,88 590,88 672,92 C748,96 822,116 868,156
+         C898,182 910,220 910,252 C910,286 898,322 866,354
+         C832,390 774,416 698,428 C622,440 548,436 498,422
+         C476,416 458,404 452,392 C444,378 446,362 456,354
+         C444,360 432,374 430,390 C428,406 440,424 458,430
+         C476,436 492,420 498,404 C502,388 500,360 498,324 L452,324 Z"
+      fill="#000"/>
+
+    <!-- Body sunburst -->
+    <path id="body-path"
+      d="M452,198 C440,180 432,155 436,133 C440,114 456,102 478,97
+         C514,88 590,88 672,92 C748,96 822,116 868,156
+         C898,182 910,220 910,252 C910,286 898,322 866,354
+         C832,390 774,416 698,428 C622,440 548,436 498,422
+         C476,416 458,404 452,392 C444,378 446,362 456,354
+         C444,360 432,374 430,390 C428,406 440,424 458,430
+         C476,436 492,420 498,404 C502,388 500,360 498,324 L452,324 Z"
+      fill="url(#sunburst)" stroke="#0a0402" stroke-width="1"/>
+    <path d="M452,198 C440,180 432,155 436,133 C440,114 456,102 478,97
+         C514,88 590,88 672,92 C748,96 822,116 868,156
+         C898,182 910,220 910,252 C910,286 898,322 866,354
+         C832,390 774,416 698,428 C622,440 548,436 498,422
+         C476,416 458,404 452,392 C444,378 446,362 456,354
+         C444,360 432,374 430,390 C428,406 440,424 458,430
+         C476,436 492,420 498,404 C502,388 500,360 498,324 L452,324 Z"
+      fill="url(#bodyshine)" pointer-events="none"/>
+    <path d="M452,198 C440,180 432,155 436,133 C440,114 456,102 478,97
+         C514,88 590,88 672,92 C748,96 822,116 868,156
+         C898,182 910,220 910,252 C910,286 898,322 866,354
+         C832,390 774,416 698,428 C622,440 548,436 498,422
+         C476,416 458,404 452,392 C444,378 446,362 456,354
+         C444,360 432,374 430,390 C428,406 440,424 458,430
+         C476,436 492,420 498,404 C502,388 500,360 498,324 L452,324 Z"
+      fill="none" stroke="rgba(255,200,100,.18)" stroke-width="1.5" pointer-events="none"/>
+
+    <!-- Neck maple -->
+    <path d="M82,220 L452,210 L452,294 L82,284 Z" fill="url(#maple)"/>
+    <!-- Fretboard rosewood -->
+    <path d="M82,224 L452,214 L452,290 L82,280 Z" fill="url(#rosewood)"/>
+
+    <!-- Fret lines + dots generated by JS -->
+    <g id="fret-lines"></g>
+    <g id="fret-dots" fill="rgba(255,255,255,.72)"></g>
+
+    <!-- Nut -->
+    <rect x="82" y="220" width="6" height="64" fill="url(#chrome)" rx="1"/>
+
+    <!-- Headstock -->
+    <path d="M82,224 L10,228 C4,228 1,232 1,238 L1,266 C1,272 4,276 10,276 L82,280 Z"
+      fill="url(#headstock)" stroke="#3a2010" stroke-width="1"/>
+    <!-- Pegs -->
+    <g id="pegs">
+      <rect x="6" y="229" width="19" height="7" rx="3.5" fill="url(#chrome)"/>
+      <circle cx="25" cy="232.5" r="3.5" fill="#b8b8b8" stroke="#666" stroke-width=".5"/>
+      <rect x="6" y="240" width="19" height="7" rx="3.5" fill="url(#chrome)"/>
+      <circle cx="25" cy="243.5" r="3.5" fill="#b8b8b8" stroke="#666" stroke-width=".5"/>
+      <rect x="6" y="251" width="19" height="7" rx="3.5" fill="url(#chrome)"/>
+      <circle cx="25" cy="254.5" r="3.5" fill="#b8b8b8" stroke="#666" stroke-width=".5"/>
+      <rect x="6" y="262" width="19" height="7" rx="3.5" fill="url(#chrome)"/>
+      <circle cx="25" cy="265.5" r="3.5" fill="#b8b8b8" stroke="#666" stroke-width=".5"/>
+      <rect x="6" y="273" width="19" height="7" rx="3.5" fill="url(#chrome)"/>
+      <circle cx="25" cy="276.5" r="3.5" fill="#b8b8b8" stroke="#666" stroke-width=".5"/>
+      <rect x="6" y="284" width="19" height="7" rx="3.5" fill="url(#chrome)"/>
+      <circle cx="25" cy="287.5" r="3.5" fill="#b8b8b8" stroke="#666" stroke-width=".5"/>
+    </g>
+    <ellipse cx="56" cy="238" rx="3.5" ry="2" fill="url(#chrome)"/>
+    <ellipse cx="56" cy="246" rx="3.5" ry="2" fill="url(#chrome)"/>
+    <text x="42" y="250" font-family="Times New Roman,serif" font-size="9" font-style="italic"
+      fill="#b0a080" text-anchor="middle" transform="rotate(-90,42,250)">Helion</text>
+
+    <!-- Pickguard -->
+    <path d="M452,210 C475,206 520,204 580,206 C640,208 700,216 740,232
+         C762,242 774,258 776,268 C776,278 766,294 746,308
+         C722,322 690,334 648,344 C610,352 575,356 548,354
+         C524,352 504,345 490,335 C476,325 470,314 468,302
+         C466,290 466,294 452,290 Z"
+      fill="url(#pgrd)" stroke="rgba(0,0,0,.3)" stroke-width="1" opacity=".94"/>
+    <!-- Pickguard screws -->
+    <g fill="url(#chrome)" stroke="#888" stroke-width=".5">
+      <circle cx="470" cy="215" r="2"/><circle cx="540" cy="208" r="2"/>
+      <circle cx="618" cy="208" r="2"/><circle cx="700" cy="220" r="2"/>
+      <circle cx="754" cy="246" r="2"/><circle cx="754" cy="290" r="2"/>
+      <circle cx="720" cy="330" r="2"/><circle cx="640" cy="350" r="2"/>
+      <circle cx="558" cy="354" r="2"/><circle cx="490" cy="340" r="2"/>
+      <circle cx="466" cy="302" r="2"/>
+    </g>
+
+    <!-- Pickups -->
+    <g id="pk-neck">
+      <rect x="490" y="225" width="54" height="48" rx="3" fill="url(#pup)" stroke="#8a7858" stroke-width="1"/>
+      <line x1="490" y1="235" x2="544" y2="235" stroke="#6a5838" stroke-width=".7"/>
+      <line x1="490" y1="239" x2="544" y2="239" stroke="#6a5838" stroke-width=".7"/>
+      <line x1="490" y1="243" x2="544" y2="243" stroke="#6a5838" stroke-width=".7"/>
+      <line x1="490" y1="247" x2="544" y2="247" stroke="#6a5838" stroke-width=".7"/>
+      <line x1="490" y1="251" x2="544" y2="251" stroke="#6a5838" stroke-width=".7"/>
+      <line x1="490" y1="255" x2="544" y2="255" stroke="#6a5838" stroke-width=".7"/>
+      <line x1="490" y1="259" x2="544" y2="259" stroke="#6a5838" stroke-width=".7"/>
+      <circle cx="499" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="507" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="515" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="523" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="531" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="539" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+    </g>
+    <g id="pk-mid">
+      <rect x="596" y="228" width="54" height="48" rx="3" fill="url(#pup)" stroke="#8a7858" stroke-width="1" transform="rotate(-2,623,252)"/>
+      <circle cx="605" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="613" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="621" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="629" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="637" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="645" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+    </g>
+    <g id="pk-bridge">
+      <rect x="704" y="230" width="56" height="48" rx="3" fill="url(#pup)" stroke="#8a7858" stroke-width="1" transform="rotate(-4,732,254)"/>
+      <circle cx="713" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="721" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="729" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="737" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="745" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+      <circle cx="753" cy="252" r="2.8" fill="#a0a0a0" stroke="#606060" stroke-width=".5"/>
+    </g>
+    <!-- Pickup glow rings -->
+    <rect id="pg-neck"   x="489" y="224" width="56" height="50" rx="3" fill="none" stroke="rgba(240,160,32,0)" stroke-width="2" filter="url(#glow-a)"/>
+    <rect id="pg-mid"    x="594" y="226" width="58" height="52" rx="3" fill="none" stroke="rgba(240,160,32,0)" stroke-width="2" filter="url(#glow-a)"/>
+    <rect id="pg-bridge" x="702" y="228" width="60" height="52" rx="3" fill="none" stroke="rgba(240,160,32,0)" stroke-width="2" filter="url(#glow-a)"/>
+
+    <!-- 5-way switch -->
+    <rect x="476" y="310" width="8" height="38" rx="4" fill="#1e1008" stroke="#2a1808" stroke-width="1"/>
+    <rect id="sw-lever" x="473" y="322" width="14" height="7" rx="3" fill="url(#chrome)" cursor="pointer" onclick="cyclePickup()"/>
+    <text x="488" y="358" font-size="6" fill="#444" font-family="Share Tech Mono,monospace">5-WAY</text>
+
+    <!-- Knobs on body (decorative, functional via HTML panel) -->
+    <g id="k-vol" transform="translate(590,318)">
+      <circle r="15" fill="url(#kbrown)" stroke="#2a1808" stroke-width="1.5" style="filter:drop-shadow(0 3px 8px rgba(0,0,0,.8))"/>
+      <circle r="4" fill="#0a0604"/>
+      <line id="ki-vol" x1="0" y1="-11" x2="0" y2="-6" stroke="#f0a020" stroke-width="2" stroke-linecap="round"/>
+      <text y="26" font-size="6" fill="#444" font-family="Share Tech Mono,monospace" text-anchor="middle">VOL</text>
+    </g>
+    <g id="k-t1" transform="translate(628,328)">
+      <circle r="13" fill="url(#kbrown)" stroke="#2a1808" stroke-width="1.5" style="filter:drop-shadow(0 3px 8px rgba(0,0,0,.8))"/>
+      <circle r="3.5" fill="#0a0604"/>
+      <line id="ki-t1" x1="0" y1="-9" x2="0" y2="-5" stroke="#f0a020" stroke-width="2" stroke-linecap="round"/>
+      <text y="23" font-size="6" fill="#444" font-family="Share Tech Mono,monospace" text-anchor="middle">T1</text>
+    </g>
+    <g id="k-t2" transform="translate(660,330)">
+      <circle r="13" fill="url(#kbrown)" stroke="#2a1808" stroke-width="1.5" style="filter:drop-shadow(0 3px 8px rgba(0,0,0,.8))"/>
+      <circle r="3.5" fill="#0a0604"/>
+      <line id="ki-t2" x1="0" y1="-9" x2="0" y2="-5" stroke="#f0a020" stroke-width="2" stroke-linecap="round"/>
+      <text y="23" font-size="6" fill="#444" font-family="Share Tech Mono,monospace" text-anchor="middle">T2</text>
+    </g>
+
+    <!-- Bridge tremolo -->
+    <rect x="800" y="228" width="44" height="48" rx="3" fill="url(#chrome)" stroke="#888" stroke-width=".8"/>
+    <g stroke="#888" stroke-width=".5">
+      <rect x="804" y="232" width="6" height="38" rx="1" fill="#c0c0c0"/>
+      <rect x="813" y="232" width="6" height="38" rx="1" fill="#c0c0c0"/>
+      <rect x="822" y="232" width="6" height="38" rx="1" fill="#c0c0c0"/>
+      <rect x="831" y="232" width="6" height="38" rx="1" fill="#c0c0c0"/>
+      <rect x="840" y="232" width="6" height="38" rx="1" fill="#c0c0c0"/>
+    </g>
+    <line x1="846" y1="258" x2="866" y2="294" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Output jack -->
+    <ellipse cx="878" cy="336" rx="7" ry="7" fill="#1a0e04" stroke="url(#chrome)" stroke-width="2"/>
+    <circle cx="878" cy="336" r="3" fill="url(#chrome)"/>
+    <!-- Strap buttons -->
+    <circle cx="670" cy="90" r="5.5" fill="url(#chrome)" stroke="#888" stroke-width=".5"/>
+    <circle cx="482" cy="430" r="5.5" fill="url(#chrome)" stroke="#888" stroke-width=".5"/>
+
+    <!-- Strings (animated) -->
+    <g id="strings-g"></g>
+    <!-- Interaction zones -->
+    <g id="oz"></g>
+    <g id="fz"></g>
+
+    <!-- String highlight indicator -->
+    <g id="str-highlight"></g>
+
+    <!-- Pickup label -->
+    <text id="pk-label" x="635" y="370" font-size="8" fill="rgba(240,160,32,.65)"
+      font-family="Share Tech Mono,monospace" text-anchor="middle" letter-spacing="1.5">MIDDLE</text>
+  </svg>
+
+  <div id="overlay">
+    <div class="ob">
+      <h2>▶ TOCCA PER ATTIVARE</h2>
+      <p>Clicca su un tasto o una corda per avviare l'audio<br>
+         <span style="color:#f0a020">Tasti: 1–6 corde aperte · Q–H fret 1–2</span><br>
+         <span style="color:#f0a020">Chord Mode: seleziona accordo + strum</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- MODE PANEL -->
+<div id="mode-panel">
+  <div class="mode-tabs">
+    <button class="mtab active" data-mode="single">SINGLE</button>
+    <button class="mtab" data-mode="chord">CHORD</button>
+    <button class="mtab" data-mode="arp">ARPEGGIO</button>
+  </div>
+
+  <!-- SINGLE mode placeholder -->
+  <div class="msec active" id="sec-single">
+    <div style="font-size:9px;color:#444;padding:8px 0;letter-spacing:2px;line-height:2;">
+      CLICK SU QUALSIASI TASTO DEL MANICO<br>
+      O SULLE CORDE PER SUONARE UNA NOTA.<br>
+      <span style="color:#666">KEYS: 1-6 · Q-Y · A-H</span>
+    </div>
+  </div>
+
+  <!-- CHORD mode -->
+  <div class="msec" id="sec-chord">
+    <div id="chord-grid"></div>
+    <div id="strum-ctl">
+      <button class="sbtn active" id="sbtn-down" onclick="setStrum('down')">↓ DOWN</button>
+      <button class="sbtn" id="sbtn-up" onclick="setStrum('up')">↑ UP</button>
+      <button class="sbtn" id="sbtn-auto" onclick="setStrum('auto')">↕ AUTO</button>
+      <div class="slrow">
+        SPEED
+        <input type="range" id="strum-spd" min="5" max="60" value="15" style="width:60px;">
+        <span id="strum-spd-v">15</span>
+      </div>
+    </div>
+    <div id="chord-diag-wrap">
+      <div style="font-size:7px;color:#444;letter-spacing:1px;margin-bottom:3px;">FINGERING</div>
+      <svg id="cdiag" width="108" height="95" style="display:block;"></svg>
+    </div>
+  </div>
+
+  <!-- ARPEGGIO mode -->
+  <div class="msec" id="sec-arp">
+    <div class="arp-col">
+      <div class="arp-label">PATTERN</div>
+      <div id="pat-grid">
+        <button class="pbtn active" data-pat="asc">↑ ASC</button>
+        <button class="pbtn" data-pat="desc">↓ DESC</button>
+        <button class="pbtn" data-pat="broken">◇ BROKEN</button>
+        <button class="pbtn" data-pat="travis">♩ TRAVIS</button>
+      </div>
+      <div class="arp-label" style="margin-top:5px;">BPM</div>
+      <div class="slrow">
+        <input type="range" id="arp-bpm" min="40" max="220" value="80" style="width:80px;">
+        <span id="arp-bpm-disp">80</span>
+      </div>
+      <button class="arp-play-btn" id="arp-play-btn" onclick="toggleArp()">▶ PLAY</button>
+    </div>
+    <div class="arp-col">
+      <div class="arp-label">ACCORDO</div>
+      <div id="arp-chord-grid"></div>
+    </div>
+    <div id="chord-diag-wrap2">
+      <div style="font-size:7px;color:#444;letter-spacing:1px;margin-bottom:3px;">FINGERING</div>
+      <svg id="cdiag2" width="108" height="95" style="display:block;"></svg>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+  <!-- Pickup -->
+  <div class="cg">
+    <div class="cl">PICKUP</div>
+    <div class="pk-name" id="ctrl-pk-name">MIDDLE</div>
+    <div class="sw-track" onclick="cyclePickup()">
+      <div class="sw-thumb" id="ctrl-sw-thumb" style="top:30px;"></div>
+    </div>
+    <div style="font-size:7px;color:#333;letter-spacing:1px;">1·2·3·4·5</div>
+  </div>
+  <div class="sep"></div>
+
+  <!-- Volume -->
+  <div class="cg">
+    <div class="cl">VOLUME</div>
+    <div class="ks" id="kv" data-value="0.85" data-param="vol"></div>
+    <div class="kv" id="kv-v">85</div>
+  </div>
+  <!-- Tone 1 -->
+  <div class="cg">
+    <div class="cl">TONE 1</div>
+    <div class="ks" id="kt1" data-value="0.75" data-param="tone1"></div>
+    <div class="kv" id="kt1-v">75</div>
+  </div>
+  <!-- Tone 2 -->
+  <div class="cg">
+    <div class="cl">TONE 2</div>
+    <div class="ks" id="kt2" data-value="0.70" data-param="tone2"></div>
+    <div class="kv" id="kt2-v">70</div>
+  </div>
+  <div class="sep"></div>
+
+  <!-- Distortion -->
+  <div class="cg">
+    <div class="cl">DISTORTION</div>
+    <input type="range" id="sl-dist" min="0" max="100" value="0">
+    <div class="kv" id="sl-dist-v">0%</div>
+  </div>
+  <!-- Reverb -->
+  <div class="cg">
+    <div class="cl">REVERB</div>
+    <input type="range" id="sl-rev" min="0" max="100" value="18">
+    <div class="kv" id="sl-rev-v">18%</div>
+  </div>
+  <!-- Delay -->
+  <div class="cg">
+    <div class="cl">DELAY</div>
+    <input type="range" id="sl-delay" min="0" max="100" value="0">
+    <div class="kv" id="sl-delay-v">0%</div>
+  </div>
+  <div class="sep"></div>
+
+  <!-- Presets -->
+  <div class="cg">
+    <div class="cl">PRESET</div>
+    <button class="prbtn" onclick="loadPreset('clean')">CLEAN</button>
+    <button class="prbtn" onclick="loadPreset('crunch')">CRUNCH</button>
+    <button class="prbtn" onclick="loadPreset('lead')">LEAD</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════
+const NUT_X = 88, SCALE_PX = 368, NFRETS = 16, BRIDGE_X = 808;
+const STR_Y  = [214, 227, 240, 253, 266, 279];
+const STR_TH = [1.2, 1.6, 2.0, 2.5, 3.0, 3.5];
+const OPEN_FREQ = [329.63, 246.94, 196.00, 146.83, 110.00, 82.41];
+const OPEN_SEMI = [64, 59, 55, 50, 45, 40]; // MIDI semitones
+const CHROMATIC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const PICKUP_NAMES = ['','BRIDGE','BRIDGE+MID','MIDDLE','MID+NECK','NECK'];
+
+// Chord library: index 0 = high-e, 5 = low-E; -1 = muted
+const CHORDS = {
+  'Em':  [0, 0, 0, 2, 2, 0],
+  'Am':  [0, 1, 2, 2, 0,-1],
+  'Dm':  [1, 3, 2, 0,-1,-1],
+  'G':   [3, 0, 0, 0, 2, 3],
+  'C':   [0, 1, 0, 2, 3,-1],
+  'F':   [1, 1, 2, 3, 3, 1],
+  'A':   [0, 2, 2, 2, 0,-1],
+  'E':   [0, 0, 1, 2, 2, 0],
+  'D':   [2, 3, 2, 0,-1,-1],
+  'Bm':  [2, 3, 4, 4, 2,-1],
+  'A7':  [0, 2, 0, 2, 0,-1],
+  'E7':  [0, 0, 1, 0, 2, 0],
+  'G7':  [1, 0, 0, 0, 2, 3],
+  'Cadd9':[3, 3, 0, 2, 3,-1],
+};
+const CHORD_NAMES = Object.keys(CHORDS);
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let audioCtx=null, masterGain, toneF1, toneF2, distNode, reverbNode, reverbGain, dryGain, delayNode, delayFb, analyser;
+let pickupMode=3, volVal=0.85, t1Val=0.75, t2Val=0.70, distVal=0, revVal=0.18, delayVal=0;
+let currentMode='single', selectedChord='Em', strumDir='down', arpPattern='asc', arpPlaying=false, arpTimer=null, arpStep=0;
+
+const vibState = STR_Y.map((y,i)=>({y, amp:0, startT:0, decayR:3+(.5-i*.08), visFreq:8+i*1.1, fret:0}));
+
+function fretX(n){ return NUT_X + SCALE_PX*(1-Math.pow(2,-n/12)); }
+const FRET_X = [NUT_X,...Array.from({length:NFRETS},(_,i)=>Math.round(fretX(i+1)))];
+
+// ══════════════════════════════════════════
+// AUDIO ENGINE
+// ══════════════════════════════════════════
+async function initAudio(){
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser(); analyser.fftSize=512;
+  masterGain = audioCtx.createGain(); masterGain.gain.value=volVal;
+  toneF1 = audioCtx.createBiquadFilter(); toneF1.type='lowpass'; toneF1.frequency.value=8000;
+  toneF2 = audioCtx.createBiquadFilter(); toneF2.type='lowpass'; toneF2.frequency.value=9000;
+  distNode = audioCtx.createWaveShaper(); distNode.curve=makeDistCurve(0); distNode.oversample='4x';
+  reverbNode = audioCtx.createConvolver();
+  reverbGain = audioCtx.createGain(); reverbGain.gain.value=revVal;
+  dryGain    = audioCtx.createGain(); dryGain.gain.value=1;
+  delayNode  = audioCtx.createDelay(2); delayNode.delayTime.value=0;
+  delayFb    = audioCtx.createGain(); delayFb.gain.value=0;
+  // Chain
+  toneF2.connect(dryGain); toneF2.connect(reverbNode);
+  reverbNode.connect(reverbGain);
+  dryGain.connect(masterGain); reverbGain.connect(masterGain);
+  toneF2.connect(delayNode); delayNode.connect(delayFb); delayFb.connect(delayNode);
+  delayNode.connect(masterGain);
+  masterGain.connect(analyser); analyser.connect(audioCtx.destination);
+  toneF1.connect(toneF2); distNode.connect(toneF1);
+  buildReverb();
+  document.getElementById('overlay').classList.add('hidden');
+  startWaveform();
+}
+
+function buildReverb(){
+  const sr=audioCtx.sampleRate, len=sr*2.4, buf=audioCtx.createBuffer(2,len,sr);
+  for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.4);}
+  reverbNode.buffer=buf;
+}
+
+function makeDistCurve(amount){
+  const n=256, c=new Float32Array(n);
+  for(let i=0;i<n;i++){const x=(i*2)/n-1; c[i]=amount===0?x:((Math.PI+amount*150)*x)/(Math.PI+amount*150*Math.abs(x));}
+  return c;
+}
+
+function karplusStrong(freq, dur, sr, brightness){
+  const N=Math.max(2,Math.round(sr/freq)), total=Math.round(dur*sr);
+  const s=new Float32Array(total), ring=new Float32Array(N);
+  for(let i=0;i<N;i++) ring[i]=Math.random()*2-1;
+  const damp=0.495+brightness*0.0048;
+  let idx=0;
+  for(let i=0;i<total;i++){const cur=ring[idx]; s[i]=cur; const nxt=ring[(idx+1)%N]; ring[idx]=damp*(cur+nxt); idx=(idx+1)%N;}
+  const fade=Math.min(80,total>>4);
+  for(let i=0;i<fade;i++){s[i]*=i/fade; s[total-1-i]*=i/fade;}
+  return s;
+}
+
+function playNote(si, fret){
+  if(!audioCtx) return;
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  const freq=OPEN_FREQ[si]*Math.pow(2,fret/12);
+  const bMap={1:.95,2:.78,3:.55,4:.35,5:.15};
+  const bright=bMap[pickupMode]??0.55;
+  const eqCfg={1:{f:3800,g:5.5},2:{f:2600,g:3},3:{f:1400,g:0},4:{f:800,g:-2.5},5:{f:450,g:4}};
+  const ec=eqCfg[pickupMode];
+  const eq=audioCtx.createBiquadFilter(); eq.type='peaking'; eq.frequency.value=ec.f; eq.gain.value=ec.g; eq.Q.value=1.1;
+  eq.connect(distNode);
+  const samples=karplusStrong(freq, 3.5, audioCtx.sampleRate, bright);
+  const buf=audioCtx.createBuffer(1,samples.length,audioCtx.sampleRate);
+  buf.copyToChannel(samples,0);
+  const src=audioCtx.createBufferSource(); src.buffer=buf;
+  src.connect(eq); src.start();
+  src.onended=()=>{src.disconnect();eq.disconnect();};
+  // Display note
+  const note=CHROMATIC[(OPEN_SEMI[si]+fret)%12]+Math.floor((OPEN_SEMI[si]+fret)/12-1);
+  document.getElementById('note-disp').textContent=note;
+  clearTimeout(window._ndTimer);
+  window._ndTimer=setTimeout(()=>document.getElementById('note-disp').textContent='—',2200);
+}
+
+function updateAudioParams(){
+  if(!audioCtx) return;
+  masterGain.gain.value=volVal;
+  toneF1.frequency.value=300+t1Val*15000;
+  toneF2.frequency.value=500+t2Val*14000;
+  distNode.curve=makeDistCurve(distVal);
+  reverbGain.gain.value=revVal;
+  delayNode.delayTime.value=delayVal*0.5;
+  delayFb.gain.value=delayVal*0.35;
+  setKnobAngle('ki-vol',-135+volVal*270);
+  setKnobAngle('ki-t1',-135+t1Val*270);
+  setKnobAngle('ki-t2',-135+t2Val*270);
+}
+
+// ══════════════════════════════════════════
+// SVG GUITAR SETUP
+// ══════════════════════════════════════════
+function buildFretboard(){
+  // Fret lines
+  const fl=document.getElementById('fret-lines');
+  for(let f=1;f<=NFRETS;f++){
+    const x=FRET_X[f];
+    const ln=mkSVG('line',{x1:x,y1:210,x2:x,y2:294,stroke:f===12?'#c0a060':'#706050','stroke-width':f===12?2.5:1.5});
+    fl.appendChild(ln);
+  }
+  // Fret dots
+  const fd=document.getElementById('fret-dots');
+  [3,5,7,9,15].forEach(f=>{
+    const x=(FRET_X[f-1]+FRET_X[f])/2;
+    const c=mkSVG('circle',{cx:x,cy:252,r:4.5}); fd.appendChild(c);
+  });
+  // Fret 12 double dot
+  const x12=(FRET_X[11]+FRET_X[12])/2;
+  [244,260].forEach(y=>{ const c=mkSVG('circle',{cx:x12,cy:y,r:4.5}); fd.appendChild(c); });
+
+  // String paths
+  const sg=document.getElementById('strings-g');
+  STR_Y.forEach((y,i)=>{
+    const p=mkSVG('path',{d:`M 30,${y} L ${BRIDGE_X},${y}`,
+      stroke:i<3?`rgba(210,200,180,.88)`:`rgba(200,180,130,.88)`,
+      'stroke-width':STR_TH[i],fill:'none',id:`sp-${i}`});
+    sg.appendChild(p);
+  });
+
+  // Open zones
+  const oz=document.getElementById('oz');
+  STR_Y.forEach((y,si)=>{
+    const r=mkSVG('rect',{x:30,y:y-12,width:NUT_X-30,height:24,class:'oz','data-si':si,'data-fret':0});
+    r.addEventListener('click',handleZoneClick); oz.appendChild(r);
+  });
+
+  // Fret zones
+  const fz=document.getElementById('fz');
+  for(let si=0;si<6;si++){
+    for(let f=1;f<=NFRETS;f++){
+      const x0=FRET_X[f-1], x1=FRET_X[f];
+      const r=mkSVG('rect',{x:x0+1,y:STR_Y[si]-12,width:x1-x0-2,height:24,class:'fz','data-si':si,'data-fret':f});
+      r.addEventListener('click',handleZoneClick); fz.appendChild(r);
+    }
+  }
+}
+
+function mkSVG(tag, attrs){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  return el;
+}
+
+async function handleZoneClick(e){
+  await initAudio();
+  if(currentMode==='single'){
+    const si=+e.target.dataset.si, fret=+e.target.dataset.fret;
+    pluckString(si, fret);
+  }
+}
+
+function pluckString(si, fret){
+  playNote(si, fret);
+  vibState[si].amp=6.5-si*0.35;
+  vibState[si].startT=performance.now();
+  vibState[si].fret=fret;
+}
+
+// ══════════════════════════════════════════
+// STRING VIBRATION ANIMATION
+// ══════════════════════════════════════════
+function animStrings(ts){
+  requestAnimationFrame(animStrings);
+  vibState.forEach((s,i)=>{
+    const p=document.getElementById(`sp-${i}`); if(!p) return;
+    const elapsed=(ts-s.startT)/1000;
+    const amp=s.amp*Math.exp(-s.decayR*elapsed);
+    const x0=30, x1=BRIDGE_X;
+    if(amp<0.06){ p.setAttribute('d',`M ${x0},${s.y} L ${x1},${s.y}`); return; }
+    const phase=elapsed*s.visFreq*2*Math.PI;
+    const vibStart=s.fret===0?NUT_X:FRET_X[s.fret];
+    const vibLen=x1-vibStart;
+    const PTS=20; let d=`M ${x0},${s.y}`;
+    if(vibStart>x0) d+=` L ${vibStart},${s.y}`;
+    for(let pt=0;pt<=PTS;pt++){
+      const t=pt/PTS, x=vibStart+t*vibLen;
+      const dy=amp*Math.sin(t*Math.PI)*Math.sin(phase+t*Math.PI*2);
+      d+=` L ${x},${s.y+dy}`;
+    }
+    p.setAttribute('d',d);
+    p.setAttribute('filter',amp>1?'url(#glow-s)':'');
+  });
+}
+requestAnimationFrame(animStrings);
+
+// ══════════════════════════════════════════
+// CHORD MODE
+// ══════════════════════════════════════════
+function buildChordButtons(){
+  const grid=document.getElementById('chord-grid');
+  const arpGrid=document.getElementById('arp-chord-grid');
+  CHORD_NAMES.forEach(name=>{
+    // chord mode
+    const b=document.createElement('button');
+    b.className='cbtn'; b.textContent=name; b.dataset.chord=name;
+    b.addEventListener('click',()=>{ selectChord(name, 'chord'); strumSelected(); });
+    grid.appendChild(b);
+    // arp mode
+    const b2=document.createElement('button');
+    b2.className='acbtn'; b2.textContent=name; b2.dataset.chord=name;
+    b2.addEventListener('click',()=>selectChord(name,'arp'));
+    arpGrid.appendChild(b2);
+  });
+  selectChord('Em','chord'); selectChord('Em','arp');
+}
+
+function selectChord(name, ctx){
+  selectedChord=name;
+  // Update chord buttons
+  document.querySelectorAll(ctx==='chord'?'.cbtn':'.acbtn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.chord===name);
+  });
+  drawChordDiagram(name, ctx==='chord'?'cdiag':'cdiag2');
+}
+
+function drawChordDiagram(name, svgId){
+  const svg=document.getElementById(svgId); if(!svg) return;
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const frets=CHORDS[name]; if(!frets) return;
+  const W=108, H=95, strSpc=16, fretSpc=18, startX=14, startY=22, nFrts=4;
+
+  // Fret lines
+  for(let f=0;f<=nFrts;f++){
+    const y=startY+f*fretSpc;
+    const ln=mkSVG('line',{x1:startX,x2:startX+5*strSpc,y1:y,y2:y,
+      stroke:f===0?'#a09070':'#504030','stroke-width':f===0?2:1});
+    svg.appendChild(ln);
+  }
+  // String lines
+  for(let s=0;s<6;s++){
+    const x=startX+s*strSpc;
+    svg.appendChild(mkSVG('line',{x1:x,x2:x,y1:startY,y2:startY+nFrts*fretSpc,stroke:'#504030','stroke-width':1}));
+  }
+
+  // Find min fret (excluding 0 and -1) for position
+  const nonOpen=frets.filter(f=>f>0);
+  const minFret=nonOpen.length?Math.min(...nonOpen):0;
+  const offset=minFret>3?minFret-1:0;
+  if(offset>0){
+    const t=mkSVG('text',{x:startX+5*strSpc+4,y:startY+fretSpc*.7,'font-size':8,fill:'#888','font-family':'Share Tech Mono,monospace'});
+    t.textContent=offset+'fr'; svg.appendChild(t);
+  }
+
+  frets.forEach((fret,i)=>{
+    // i=0 is high-e → rightmost in diagram (diagram: left=lowE, right=highE)
+    const diagramX=startX+(5-i)*strSpc;
+    if(fret===-1){
+      const t=mkSVG('text',{x:diagramX,y:startY-8,'font-size':9,fill:'#666','text-anchor':'middle','font-family':'sans-serif'});
+      t.textContent='✕'; svg.appendChild(t);
+    } else if(fret===0){
+      svg.appendChild(mkSVG('circle',{cx:diagramX,cy:startY-8,r:4,fill:'none',stroke:'#888','stroke-width':1}));
+    } else {
+      const displayFret=fret-offset;
+      if(displayFret>=1&&displayFret<=nFrts){
+        svg.appendChild(mkSVG('circle',{cx:diagramX,cy:startY+(displayFret-.5)*fretSpc,r:6.5,fill:'#f0a020'}));
+      }
+    }
+  });
+
+  // Chord name
+  const t=mkSVG('text',{x:W/2,y:H-4,'font-size':8,fill:'#f0a020','text-anchor':'middle','font-family':'Share Tech Mono,monospace','letter-spacing':1});
+  t.textContent=name; svg.appendChild(t);
+}
+
+// Strum direction
+let strumMode='down';
+function setStrum(dir){
+  strumMode=dir;
+  ['down','up','auto'].forEach(d=>document.getElementById(`sbtn-${d}`)?.classList.toggle('active',d===dir));
+}
+
+function strumSelected(){
+  initAudio().then(()=>{
+    if(strumMode==='down') doStrum(selectedChord,'down');
+    else if(strumMode==='up') doStrum(selectedChord,'up');
+    else { doStrum(selectedChord,'down'); setTimeout(()=>doStrum(selectedChord,'up'),280); }
+  });
+}
+
+document.getElementById('strum-spd').addEventListener('input',e=>{
+  document.getElementById('strum-spd-v').textContent=e.target.value;
+});
+
+function doStrum(name, dir){
+  const frets=CHORDS[name]; if(!frets) return;
+  const spd=parseInt(document.getElementById('strum-spd').value);
+  const order=dir==='down'?[5,4,3,2,1,0]:[0,1,2,3,4,5];
+  let t=0;
+  order.forEach(si=>{
+    const fret=frets[si];
+    if(fret===-1) return;
+    setTimeout(()=>pluckString(si,fret), t);
+    t+=spd;
+  });
+}
+
+// ══════════════════════════════════════════
+// ARPEGGIO
+// ══════════════════════════════════════════
+function buildArpPatternBtns(){
+  document.querySelectorAll('.pbtn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      arpPattern=b.dataset.pat;
+      document.querySelectorAll('.pbtn').forEach(x=>x.classList.toggle('active',x===b));
+      if(arpPlaying){ stopArp(); startArp(); }
+    });
+  });
+  document.getElementById('arp-bpm').addEventListener('input',e=>{
+    document.getElementById('arp-bpm-disp').textContent=e.target.value;
+    if(arpPlaying){ stopArp(); startArp(); }
+  });
+}
+
+function getArpNotes(chord){
+  const frets=CHORDS[chord]; if(!frets) return [];
+  // Collect valid notes: [{si, fret}] sorted low→high (si=5 first)
+  const notes=[];
+  for(let si=5;si>=0;si--){ if(frets[si]!==-1) notes.push({si,fret:frets[si]}); }
+  return notes;
+}
+
+function buildArpSequence(chord, pattern){
+  const notes=getArpNotes(chord); if(!notes.length) return [];
+  switch(pattern){
+    case 'asc':    return [...notes];
+    case 'desc':   return [...notes].reverse();
+    case 'broken': {
+      // Alternate bass and treble
+      const lo=[...notes].slice(0,Math.ceil(notes.length/2));
+      const hi=[...notes].slice(Math.ceil(notes.length/2)).reverse();
+      const seq=[]; const len=Math.max(lo.length,hi.length);
+      for(let i=0;i<len;i++){ if(lo[i]) seq.push(lo[i]); if(hi[i]) seq.push(hi[i]); }
+      return seq;
+    }
+    case 'travis': {
+      // Bass alternation + inner strings
+      if(notes.length<3) return notes;
+      const bass1=notes[0], bass2=notes[1]||notes[0];
+      const inner=notes.slice(2);
+      const seq=[];
+      for(let i=0;i<8;i++){
+        if(i%2===0) seq.push(i%4===0?bass1:bass2);
+        else seq.push(inner[(i>>1)%inner.length]);
+      }
+      return seq;
+    }
+    default: return notes;
+  }
+}
+
+let arpSeq=[];
+function startArp(){
+  if(!audioCtx) return;
+  arpSeq=buildArpSequence(selectedChord, arpPattern);
+  if(!arpSeq.length) return;
+  arpStep=0; arpPlaying=true;
+  const bpm=parseInt(document.getElementById('arp-bpm').value);
+  const ms=(60/bpm)*1000*0.5; // 8th notes
+  arpTimer=setInterval(()=>{
+    const note=arpSeq[arpStep%arpSeq.length];
+    pluckString(note.si, note.fret);
+    // Highlight active string
+    highlightString(note.si);
+    arpStep++;
+  }, ms);
+}
+function stopArp(){
+  clearInterval(arpTimer); arpTimer=null; arpPlaying=false;
+  document.getElementById('arp-play-btn').textContent='▶ PLAY';
+  document.getElementById('arp-play-btn').classList.remove('playing');
+}
+async function toggleArp(){
+  await initAudio();
+  if(arpPlaying){ stopArp(); }
+  else {
+    arpSeq=buildArpSequence(selectedChord, arpPattern);
+    startArp();
+    document.getElementById('arp-play-btn').textContent='■ STOP';
+    document.getElementById('arp-play-btn').classList.add('playing');
+  }
+}
+
+function highlightString(si){
+  const hl=document.getElementById('str-highlight');
+  while(hl.firstChild) hl.removeChild(hl.firstChild);
+  const y=STR_Y[si];
+  const glow=mkSVG('line',{x1:NUT_X,x2:BRIDGE_X,y1:y,y2:y,
+    stroke:'rgba(240,160,32,.4)','stroke-width':6,filter:'url(#glow-s)'});
+  hl.appendChild(glow);
+  setTimeout(()=>{ while(hl.firstChild) hl.removeChild(hl.firstChild); }, 120);
+}
+
+// ══════════════════════════════════════════
+// PICKUP SWITCH
+// ══════════════════════════════════════════
+function cyclePickup(){ setPickup((pickupMode%5)+1); }
+function setPickup(p){
+  pickupMode=p;
+  const name=PICKUP_NAMES[p];
+  document.getElementById('ctrl-pk-name').textContent=name;
+  document.getElementById('pk-label').textContent=name;
+  const thumbPos={1:4,2:17,3:30,4:42,5:56};
+  document.getElementById('ctrl-sw-thumb').style.top=thumbPos[p]+'px';
+  const ly={1:312,2:318,3:322,4:328,5:334};
+  document.getElementById('sw-lever')?.setAttribute('y',ly[p]);
+  const gc='rgba(240,160,32,.7)';
+  ['pg-neck','pg-mid','pg-bridge'].forEach(id=>document.getElementById(id)?.setAttribute('stroke','rgba(240,160,32,0)'));
+  if(p===1||p===2) document.getElementById('pg-bridge')?.setAttribute('stroke',gc);
+  if(p>=2&&p<=4)   document.getElementById('pg-mid')?.setAttribute('stroke',gc);
+  if(p===4||p===5) document.getElementById('pg-neck')?.setAttribute('stroke',gc);
+}
+
+// ══════════════════════════════════════════
+// KNOB INTERACTION
+// ══════════════════════════════════════════
+let activeKnob=null, kStartY=0, kStartVal=0;
+document.querySelectorAll('.ks').forEach(k=>{
+  k.addEventListener('mousedown',e=>{ activeKnob=k; kStartY=e.clientY; kStartVal=parseFloat(k.dataset.value); e.preventDefault(); });
+  k.addEventListener('touchstart',e=>{ activeKnob=k; kStartY=e.touches[0].clientY; kStartVal=parseFloat(k.dataset.value); e.preventDefault(); },{passive:false});
+});
+document.addEventListener('mousemove',e=>{ if(!activeKnob) return; applyKnob(activeKnob,kStartY-e.clientY); });
+document.addEventListener('touchmove',e=>{ if(!activeKnob) return; applyKnob(activeKnob,kStartY-e.touches[0].clientY); e.preventDefault(); },{passive:false});
+document.addEventListener('mouseup',()=>activeKnob=null);
+document.addEventListener('touchend',()=>activeKnob=null);
+
+function applyKnob(k, dy){
+  const v=Math.max(0,Math.min(1,kStartVal+dy/120));
+  k.dataset.value=v;
+  const param=k.dataset.param, disp=Math.round(v*100);
+  if(param==='vol'){ volVal=v; document.getElementById('kv-v').textContent=disp; setKnobAngle('ki-vol',-135+v*270); }
+  if(param==='tone1'){ t1Val=v; document.getElementById('kt1-v').textContent=disp; setKnobAngle('ki-t1',-135+v*270); }
+  if(param==='tone2'){ t2Val=v; document.getElementById('kt2-v').textContent=disp; setKnobAngle('ki-t2',-135+v*270); }
+  k.style.transform=`rotate(${v*270}deg)`;
+  updateAudioParams();
+}
+function setKnobAngle(id,angle){ const el=document.getElementById(id); if(el) el.setAttribute('transform',`rotate(${angle})`); }
+
+// ══════════════════════════════════════════
+// SLIDERS
+// ══════════════════════════════════════════
+document.getElementById('sl-dist').addEventListener('input',e=>{distVal=e.target.value/100;document.getElementById('sl-dist-v').textContent=e.target.value+'%';updateAudioParams();});
+document.getElementById('sl-rev').addEventListener('input',e=>{revVal=e.target.value/100;document.getElementById('sl-rev-v').textContent=e.target.value+'%';updateAudioParams();});
+document.getElementById('sl-delay').addEventListener('input',e=>{delayVal=e.target.value/100;document.getElementById('sl-delay-v').textContent=e.target.value+'%';updateAudioParams();});
+
+// ══════════════════════════════════════════
+// PRESETS
+// ══════════════════════════════════════════
+const PRESETS={
+  clean:  {p:3,vol:.85,t1:.75,t2:.70,dist:0,   rev:.15,delay:0   },
+  crunch: {p:1,vol:.90,t1:.65,t2:.60,dist:.40, rev:.20,delay:.10 },
+  lead:   {p:5,vol:.95,t1:.85,t2:.80,dist:.70, rev:.35,delay:.25 },
+};
+function loadPreset(name){
+  const pr=PRESETS[name]; if(!pr) return;
+  setPickup(pr.p); volVal=pr.vol; t1Val=pr.t1; t2Val=pr.t2; distVal=pr.dist; revVal=pr.rev; delayVal=pr.delay;
+  document.getElementById('kv-v').textContent=Math.round(pr.vol*100);
+  document.getElementById('kt1-v').textContent=Math.round(pr.t1*100);
+  document.getElementById('kt2-v').textContent=Math.round(pr.t2*100);
+  document.getElementById('sl-dist').value=Math.round(pr.dist*100); document.getElementById('sl-dist-v').textContent=Math.round(pr.dist*100)+'%';
+  document.getElementById('sl-rev').value=Math.round(pr.rev*100);   document.getElementById('sl-rev-v').textContent=Math.round(pr.rev*100)+'%';
+  document.getElementById('sl-delay').value=Math.round(pr.delay*100); document.getElementById('sl-delay-v').textContent=Math.round(pr.delay*100)+'%';
+  ['kv','kt1','kt2'].forEach((id,i)=>{
+    const v=[pr.vol,pr.t1,pr.t2][i];
+    document.getElementById(id).dataset.value=v;
+    document.getElementById(id).style.transform=`rotate(${v*270}deg)`;
+  });
+  setKnobAngle('ki-vol',-135+pr.vol*270);
+  setKnobAngle('ki-t1',-135+pr.t1*270);
+  setKnobAngle('ki-t2',-135+pr.t2*270);
+  updateAudioParams();
+}
+
+// ══════════════════════════════════════════
+// MODE SWITCHING
+// ══════════════════════════════════════════
+document.querySelectorAll('.mtab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    currentMode=tab.dataset.mode;
+    document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.msec').forEach(s=>s.classList.remove('active'));
+    const sec=document.getElementById(`sec-${currentMode}`);
+    if(sec) sec.classList.add('active');
+    if(arpPlaying&&currentMode!=='arp') stopArp();
+  });
+});
+
+// ══════════════════════════════════════════
+// WAVEFORM
+// ══════════════════════════════════════════
+function startWaveform(){
+  const cv=document.getElementById('wvc'), ctx2=cv.getContext('2d');
+  const W=cv.width, H=cv.height, arr=new Uint8Array(analyser.fftSize);
+  (function draw(){
+    requestAnimationFrame(draw);
+    analyser.getByteTimeDomainData(arr);
+    ctx2.fillStyle='#080606'; ctx2.fillRect(0,0,W,H);
+    ctx2.strokeStyle='rgba(240,160,32,.8)'; ctx2.lineWidth=1.5; ctx2.beginPath();
+    const sl=W/arr.length; let x=0;
+    arr.forEach((v,i)=>{ const y=(v/128)*H/2; i===0?ctx2.moveTo(x,y):ctx2.lineTo(x,y); x+=sl; });
+    ctx2.stroke();
+  })();
+}
+
+// ══════════════════════════════════════════
+// KEYBOARD
+// ══════════════════════════════════════════
+document.addEventListener('keydown',async e=>{
+  if(e.target.tagName==='INPUT') return;
+  const km={'1':[0,0],'2':[1,0],'3':[2,0],'4':[3,0],'5':[4,0],'6':[5,0],
+    'q':[0,1],'w':[1,1],'e':[2,1],'r':[3,1],'t':[4,1],'y':[5,1],
+    'a':[0,2],'s':[1,2],'d':[2,2],'f':[3,2],'g':[4,2],'h':[5,2]};
+  if(km[e.key]){ await initAudio(); pluckString(km[e.key][0],km[e.key][1]); }
+  if(e.key==='p') cyclePickup();
+  if(e.key===' '&&currentMode==='chord'){ e.preventDefault(); await initAudio(); strumSelected(); }
+  if(e.key==='Enter'&&currentMode==='arp'){ e.preventDefault(); await initAudio(); toggleArp(); }
+});
+
+// ══════════════════════════════════════════
+// PWA SERVICE WORKER
+// ══════════════════════════════════════════
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(r=>console.log('Helion S1 SW registered',r.scope))
+      .catch(e=>console.log('SW error',e));
+  });
+}
+
+// Install prompt
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; });
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildFretboard();
+buildChordButtons();
+buildArpPatternBtns();
+setPickup(3);
+document.getElementById('overlay').addEventListener('click',()=>initAudio());
+
+// Init knob transforms
+[['kv',volVal],['kt1',t1Val],['kt2',t2Val]].forEach(([id,v])=>{
+  const k=document.getElementById(id); if(k) k.style.transform=`rotate(${v*270}deg)`;
+});
+setKnobAngle('ki-vol',-135+volVal*270);
+setKnobAngle('ki-t1',-135+t1Val*270);
+setKnobAngle('ki-t2',-135+t2Val*270);
+</script>
+</body>
+</html>

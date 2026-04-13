@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#080606" rx="80"/>
+  <!-- Guitar body silhouette -->
+  <path d="M256,100 C200,100 165,130 162,175 C160,205 175,225 175,250
+           C175,290 148,310 135,340 C120,374 130,415 165,435
+           C195,452 230,448 256,435 C282,448 317,452 347,435
+           C382,415 392,374 377,340 C364,310 337,290 337,250
+           C337,225 352,205 350,175 C347,130 312,100 256,100Z"
+    fill="#c87a12" opacity="0.9"/>
+  <!-- Guitar neck -->
+  <rect x="246" y="40" width="20" height="100" rx="8" fill="#d4b072"/>
+  <!-- Sound hole -->
+  <circle cx="256" cy="310" r="35" fill="#080606" opacity="0.6"/>
+  <circle cx="256" cy="310" r="28" fill="none" stroke="#f0a020" stroke-width="2" opacity="0.4"/>
+  <!-- Strings -->
+  <line x1="235" y1="50" x2="235" y2="420" stroke="#c0c0c0" stroke-width="1" opacity="0.5"/>
+  <line x1="248" y1="50" x2="248" y2="420" stroke="#c0c0c0" stroke-width="1.5" opacity="0.5"/>
+  <line x1="261" y1="50" x2="261" y2="420" stroke="#c0c0c0" stroke-width="2" opacity="0.5"/>
+  <line x1="274" y1="50" x2="274" y2="420" stroke="#c0c0c0" stroke-width="1" opacity="0.5"/>
+  <!-- Brand letter -->
+  <text x="256" y="490" font-family="Arial Black,sans-serif" font-size="28" font-weight="900"
+    fill="#f0a020" text-anchor="middle" letter-spacing="6">HELION</text>
+</svg>
